@@ -1,3 +1,4 @@
+
 # HIV Model fitting for evaluating interventions: A simulation exercise 
 #SIMULATING HIV PREVALENCE DATA FROM 1985 TO 2024
 
@@ -18,14 +19,14 @@ disease_params <- function(Beta = 0.9 ## transmission coefficient when prevalenc
 													 , birthRt = .03 ## birth rate, 3% of people give birth per year
 													 , deathRt = 1/60 ## 60 year natural life expectancy
 ){
-	return(as.list(environment()))
+	return(as.list(environment())) ## ARG
 }
 
 disease_params()
 
-initPrev <- exp(-7) ## infected at start
-tseqMonth <- seq(1985, 2024, by = 1/12)
-init <- c(S=1-initPrev, I1=initPrev, I2=0, I3=0, I4=0, CI = 0, CD = 0) ## modeling proportion of population
+initPrev <- exp(-7) ## infected at start ## ARG
+tseqMonth <- seq(1985, 2024, by = 1/12) ## ARG
+init <- c(S=1-initPrev, I1=initPrev, I2=0, I3=0, I4=0, CI = 0, CD = 0) ## modeling proportion of population ## ARG
 Is <- paste0('I',1:4) ## for easy indexing
 
 ## Define the SI ODE model. This model is equivalent to the third model in the HIV in Harare tutorial
