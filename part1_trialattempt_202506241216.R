@@ -91,7 +91,7 @@ SI4control <- function(t, y, parms) {
 }
 
 ## Function to run the deterministic model simulation, based on the ODE system defined in SImod().
-simEpidemic <- function(init, tseq = tseqMonth, modFunction=SImod, parms = disease_params()) {
+simEpidemic <- function(init, tseq = tseqMonth, modFunction=SI4control, parms = disease_params()) {
   simDat <- as.data.frame(lsoda(init, tseq, modFunction, parms=parms))
   simDat$I <- rowSums(simDat[, Is])
   simDat$N <- rowSums(simDat[, c('S',Is)])
@@ -119,7 +119,7 @@ sampleEpidemic <- function(simDat # Simulated "data" which we treat as real
 ## Run system of ODEs for "true" parameter values
 trueParms <- disease_params() # Default model parameters are defined in lines 20-26
 simDat <- simEpidemic(init, parms = trueParms) # Simulated epidemic (underlying process)
-View(simDat)
+#View(simDat)
 
 par(bty='n', lwd = 2)
 # Plot simulated prevalence through time:
