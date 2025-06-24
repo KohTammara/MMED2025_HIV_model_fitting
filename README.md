@@ -17,6 +17,9 @@ How estimation of intervention effectiveness (e.g. bias, confidence interval cov
 - (mis)alignment / simplifications of “real” versus model worlds
 - (mis)alignment about actual and assumed observation process
 
+### Research Question
+How does the performance (bias, coefficient of variation/relative standard error, confidence interval/region coverage) of different estimation approaches (MLEmaximum likelihood  versus least squares) compare, on the estimation of the effect of an intervention, under different scenarios on available prevalence data, as assessed in a simulation exercise?
+
 ### Link to draft report
  https://docs.google.com/document/d/10SJJRYky8cwGuVQTe3pSFHB02glARgzc9K7tlwz4WDc/edit?usp=sharing
  
