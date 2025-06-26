@@ -102,9 +102,9 @@ substitute_parameters <- function(estimated_params, fixed_params) {
 	for (name in names(estimated_params)) {
 		if (grepl('log_', name)) {
 			param_name <- gsub('log_', '', name)
-			fixed_params[[param_name]] <- exp(estimated_params[[name]])
+			fixed_params[[param_name]] <- exp(estimated_params[[name]])##unlogged params
 		} else {
-			fixed_params[[name]] <- estimated_params[[name]]
+			fixed_params[[name]] <- estimated_params[[name]]##logged params
 		}
 	}
 	return(fixed_params)
@@ -113,7 +113,8 @@ substitute_parameters <- function(estimated_params, fixed_params) {
 calculate_nll <- function(parameters, observed_data, model_function) {
 	# browser()
 	simulated_data <- simulate_epidemic(initial_conditions, time_sequence, model_function, parameters)
-	matched_times <- match(observed_data$time, simulated_data$time)
+	matched_times <- observed_data$time %in% simulated_data$time
+	# view(simulated_data)
 	if (any(is.na(simulated_data$P[matched_times])) || any(simulated_data$P[matched_times] < 0 | simulated_data$P[matched_times] > 1)) {
 		warning("Invalid prevalence values (NA or outside [0,1]) detected")
 		return(1e6)
@@ -124,6 +125,7 @@ calculate_nll <- function(parameters, observed_data, model_function) {
 
 estimate_mle <- function(observed_data, model_function, initial_guess, fixed_params) {
 	objective_function <- function(fit_params) {
+		# browser()
 		updated_params <- substitute_parameters(fit_params, fixed_params)
 		calculate_nll(updated_params, observed_data, model_function)
 	}
@@ -174,7 +176,6 @@ arrows(observed_data$time, observed_data$lci, observed_data$time, observed_data$
 legend('topleft', legend = c('Simulated Prevalence', 'Observed Prevalence', '95% CI'), col = c('red', 'blue', 'blue'), pch = c(NA, 16, NA), lty = c(1, NA, 1), bty = 'n')
 
 initial_guess <- c(log_cMax = log(1), log_cRate = log(3))
-
 mle_result <- estimate_mle(observed_data, SI4control, initial_guess, true_params)
 lse_result <- estimate_lse(observed_data, SI4control, initial_guess, true_params)
 
