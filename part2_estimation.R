@@ -149,7 +149,7 @@ calculate_nll <- function(parameters, observed_data, model_function) {
 
 # MLE function ------------------------------------------------------------
 estimate_mle <- function(observed_data, model_function, initial_guess, fixed_params) {
-	
+	print(observed_data)
 	objective_function <- function(fit_params) {
 		updated_params <- substitute_parameters(fit_params, fixed_params)
 		calculate_nll(updated_params, observed_data, model_function)
@@ -158,11 +158,13 @@ estimate_mle <- function(observed_data, model_function, initial_guess, fixed_par
 	mle_fit_pre <- optim(par = initial_guess, fn = objective_function, method = "SANN", control = list(trace = 1, maxit = 150))
 	mle_fit <- optim(par = mle_fit_pre$par, fn = objective_function, method = "Nelder-Mead", control = list(trace = 1, maxit = 1000), hessian = TRUE)
 	
+	print(mle_fit)
 	estimated_params <- mle_fit$par
 	covariance_matrix <- solve(mle_fit$hessian)
+	print(covariance_matrix)
 	standard_errors <- sqrt(diag(covariance_matrix))
 	
-	list(params = estimated_params, se = standard_errors, loglik = mle_fit$value, fit = mle_fit, fisherInfMatrix = covariance_matrix)
+	list(params = estimated_params, se = standard_errors, loglik = mle_fit$value, fisherInfMatrix = covariance_matrix)
 }
 
 
@@ -212,81 +214,87 @@ is_in_conf_region <- function(cMax_est, cRate_est, fixed_params, observed_data, 
 # Wrapper function for each dataset
 process_one <- function(observed_data, scenario_id, dataset_id, true_cMax, true_cRate) {
 	init_guess_mle <- c(logit_cMax = logit(0.7), log_cRate = log(0.5))
-	init_guess_lse <- c(log_cMax = log(0.7), log_cRate = log(0.5))
+	# init_guess_lse <- c(log_cMax = log(0.7), log_cRate = log(0.5))
 	fixed_params <- create_disease_parameters(cMax = true_cMax, cRate = true_cRate)
 	
 	# Estimate MLE
 	mle_result <- estimate_mle(observed_data, SI4control_time, init_guess_mle, fixed_params)
 	# Estimate LSE
-	lse_result <- estimate_lse(observed_data, SI4control_time, init_guess_lse, fixed_params)
+	# lse_result <- estimate_lse(observed_data, SI4control_time, init_guess_lse, fixed_params)
+	# 
+	# # MLE estimates and CIs
+	# mle_cMax <- invlogit(mle_result$params["logit_cMax"])
+	# mle_cRate <- exp(mle_result$params["log_cRate"])
+	# mle_se_cMax <- mle_result$se["logit_cMax"] * (mle_cMax * (1 - mle_cMax))
+	# mle_se_cRate <- mle_result$se["log_cRate"] * mle_cRate
+	# mle_ci_cMax <- mle_cMax + c(-1.96, 1.96) * mle_se_cMax
+	# mle_ci_cRate <- mle_cRate + c(-1.96, 1.96) * mle_se_cRate
+	# 
+	# # LSE estimates and CIs
+	# lse_cMax <- exp(lse_result$params["log_cMax"])
+	# lse_cRate <- exp(lse_result$params["log_cRate"])
+	# lse_se_cMax <- lse_result$se["log_cMax"] * (lse_cMax * (1 - lse_cMax))
+	# lse_se_cRate <- lse_result$se["log_cRate"] * lse_cRate
+	# lse_ci_cMax <- lse_cMax + c(-1.96, 1.96) * lse_se_cMax
+	# lse_ci_cRate <- lse_cRate + c(-1.96, 1.96) * lse_se_cRate
+	# 
+	# # Check if the estimated MLE points are within the 95% profile likelihood region
+	# in_region_mle <- is_in_conf_region(mle_cMax, mle_cRate, fixed_params, observed_data, SI4control_time)
+	# 
+	# tibble(
+	# 	scenario = scenario_id,
+	# 	dataset = dataset_id,
+	# 	mle_cMax = mle_cMax,
+	# 	mle_cRate = mle_cRate,
+	# 	mle_cMax_lci = mle_ci_cMax[1],
+	# 	mle_cMax_uci = mle_ci_cMax[2],
+	# 	mle_cRate_lci = mle_ci_cRate[1],
+	# 	mle_cRate_uci = mle_ci_cRate[2],
+	# 	lse_cMax = lse_cMax,
+	# 	lse_cRate = lse_cRate,
+	# 	lse_cMax_lci = lse_ci_cMax[1],
+	# 	lse_cMax_uci = lse_ci_cMax[2],
+	# 	lse_cRate_lci = lse_ci_cRate[1],
+	# 	lse_cRate_uci = lse_ci_cRate[2],
+	# 	true_cMax = true_cMax,
+	# 	true_cRate = true_cRate,
+	# 	mle_se_cMax = mle_se_cMax,
+	# 	mle_se_cRate = mle_se_cRate,
+	# 	lse_se_cMax = lse_se_cMax,
+	# 	lse_se_cRate = lse_se_cRate,
+	# 	mle_in_region = in_region_mle
+	# )
 	
-	# MLE estimates and CIs
-	mle_cMax <- invlogit(mle_result$params["logit_cMax"])
-	mle_cRate <- exp(mle_result$params["log_cRate"])
-	mle_se_cMax <- mle_result$se["logit_cMax"] * (mle_cMax * (1 - mle_cMax))
-	mle_se_cRate <- mle_result$se["log_cRate"] * mle_cRate
-	mle_ci_cMax <- mle_cMax + c(-1.96, 1.96) * mle_se_cMax
-	mle_ci_cRate <- mle_cRate + c(-1.96, 1.96) * mle_se_cRate
-	
-	# LSE estimates and CIs
-	lse_cMax <- exp(lse_result$params["log_cMax"])
-	lse_cRate <- exp(lse_result$params["log_cRate"])
-	lse_se_cMax <- lse_result$se["log_cMax"] * (lse_cMax * (1 - lse_cMax))
-	lse_se_cRate <- lse_result$se["log_cRate"] * lse_cRate
-	lse_ci_cMax <- lse_cMax + c(-1.96, 1.96) * lse_se_cMax
-	lse_ci_cRate <- lse_cRate + c(-1.96, 1.96) * lse_se_cRate
-	
-	# Check if the estimated MLE points are within the 95% profile likelihood region
-	in_region_mle <- is_in_conf_region(mle_cMax, mle_cRate, fixed_params, observed_data, SI4control_time)
-	
-	tibble(
-		scenario = scenario_id,
-		dataset = dataset_id,
-		mle_cMax = mle_cMax,
-		mle_cRate = mle_cRate,
-		mle_cMax_lci = mle_ci_cMax[1],
-		mle_cMax_uci = mle_ci_cMax[2],
-		mle_cRate_lci = mle_ci_cRate[1],
-		mle_cRate_uci = mle_ci_cRate[2],
-		lse_cMax = lse_cMax,
-		lse_cRate = lse_cRate,
-		lse_cMax_lci = lse_ci_cMax[1],
-		lse_cMax_uci = lse_ci_cMax[2],
-		lse_cRate_lci = lse_ci_cRate[1],
-		lse_cRate_uci = lse_ci_cRate[2],
-		true_cMax = true_cMax,
-		true_cRate = true_cRate,
-		mle_se_cMax = mle_se_cMax,
-		mle_se_cRate = mle_se_cRate,
-		lse_se_cMax = lse_se_cMax,
-		lse_se_cRate = lse_se_cRate,
-		mle_in_region = in_region_mle
-	)
+	return (c(invlogit(mle_result$params["logit_cMax"]),exp(mle_result$params["log_cRate"])))
 }
+# data1 <- readRDS("/Users/tkoh/Documents/MMED2025/MMED2025_HIV_model_fitting/simPdata_list2.rds")
+# process_one(data1, scenario_id = 1, c(seq(1:20)), 0.8, 1)
 
 # Main loop for processing all datasets
 analyze_all <- function(path1, path2, cMax1, cRate1, cMax2, cRate2, output_path) {
 	data1 <- readRDS(path1)
-	data2 <- readRDS(path2)
+	print(data1)
+	# data2 <- readRDS(path2)
 	
 	results1 <- purrr::map2_dfr(data1, 1:20, ~ process_one(.x, scenario_id = 1, .y, cMax1, cRate1))
-	results2 <- purrr::map2_dfr(data2, 1:20, ~ process_one(.x, scenario_id = 2, .y, cMax2, cRate2))
+	print(results1)
+	# results2 <- purrr::map2_dfr(data2, 1:20, ~ process_one(.x, scenario_id = 2, .y, cMax2, cRate2))
 	
-	full_results <- bind_rows(results1, results2)
-	saveRDS(full_results, output_path)
-	return(full_results)
+	# full_results <- bind_rows(results1, results2)
+	# saveRDS(full_results, output_path)
+	# return(full_results)
 }
 
 # Run analysis
-results <- analyze_all(
-	path1 = "scenario1.rds",
-	path2 = "scenario2.rds",
-	cMax1 = 0.7,
-	cRate1 = 0.5,
-	cMax2 = 0.8,
-	cRate2 = 1.0,
-	output_path = "fitting_results_with_se_and_region.rds"
-)
+# results <- analyze_all(
+# 	path1 = "scenario1.rds",
+# 	path2 = "scenario2.rds",
+# 	cMax1 = 0.7,
+# 	cRate1 = 0.5,
+# 	cMax2 = 0.8,
+# 	cRate2 = 1.0,
+# 	output_path = "fitting_results_with_se_and_region.rds"
+# )
 
 # ============================================================
 # Global Parameters and Initial Conditions
@@ -304,41 +312,11 @@ infection_states <- paste0('I', 1:4)
 ##### Test
 # Example of running the analysis
 results <- analyze_all(
-	path1 = "scenario1.rds",
-	path2 = "scenario2.rds",
+	path1 = "/Users/tkoh/Documents/MMED2025/MMED2025_HIV_model_fitting/simPdata_list1.rds",
+	path2 = "/Users/tkoh/Documents/MMED2025/MMED2025_HIV_model_fitting/simPdata_list2.rds",
 	cMax1 = 0.7,
 	cRate1 = 0.5,
-	cMax2 = 0.8,
-	cRate2 = 1.0,
+	cMax2 = 0.7,
+	cRate2 = 0.5,
 	output_path = "fitting_results_with_se_and_region.rds"
 )
-# Load necessary library
-library(tibble)
-
-# Set seed for reproducibility
-set.seed(42)
-
-# Create dummy observed data for each scenario
-create_observed_data <- function(true_cMax, true_cRate) {
-	time <- seq(1980, 2020, by = 1)
-	num_samp <- rep(1000, length(time))
-	prev <- rbeta(length(time), shape1 = 1 + true_cMax * 100, shape2 = 100)  # Simulate prevalence
-	num_pos <- round(prev * num_samp)  # Simulate positive cases based on prevalence
-	
-	# Confidence intervals
-	lci <- pmax(prev - 0.05, 0)
-	uci <- pmin(prev + 0.05, 1)
-	
-	tibble(time = time, numPos = num_pos, numSamp = num_samp, sampPrev = prev, lci = lci, uci = uci)
-}
-
-# Scenario 1 Data
-scenario1_data <- lapply(1:20, function(x) create_observed_data(true_cMax = 0.7, true_cRate = 0.5))
-
-# Scenario 2 Data
-scenario2_data <- lapply(1:20, function(x) create_observed_data(true_cMax = 0.8, true_cRate = 1.0))
-
-# Save as RDS files
-saveRDS(scenario1_data, file = "scenario1.rds")
-saveRDS(scenario2_data, file = "scenario2.rds")
-
