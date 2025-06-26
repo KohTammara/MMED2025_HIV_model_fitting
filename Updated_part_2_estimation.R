@@ -73,7 +73,7 @@ create_disease_parameters <- function(Beta = 0.6 ## transmission coefficient whe
 																			, progRt = (1/15) ## rate of of progression through each of the I classes, for 10 years total
 																			, birthRt = .03 ## birth rate, 3% of people give birth per year
 																			, deathRt = 1/60 ## 60 year natural life expectancy
-																			, cMax = 0.7 # 1 - THIS is intervention effect
+																			, cMax = 0.3 # 1 - THIS is intervention effect
 																			, cRate = 0.5
 																			, cStart = 1998
 ){
@@ -146,7 +146,7 @@ calculate_nll <- function(parameters, observed_data, model_function) {
 	return(-sum(nll_values))
 }
 
-calculate_nll(create_disease_parameters(), simdata2, SI4control)
+
 
 estimate_mle <- function(observed_data, model_function, initial_guess, fixed_params) {
 	
@@ -188,6 +188,16 @@ estimate_lse <- function(observed_data, model_function, initial_guess, fixed_par
 	list(params = estimated_params, se = standard_errors, ssr = lse_fit$value, fit = lse_fit)
 }
 
+
+
+logit <- function(x){
+	log(x/(1-x)) 
+}
+
+invlogit <- function(x){
+	1/(1+exp(-x)) 
+}
+
 # ============================================================
 # Run Simulation, Sampling, Estimation and Grid Evaluation
 # ============================================================
@@ -207,15 +217,131 @@ arrows(observed_data$time, observed_data$lci, observed_data$time, observed_data$
 legend('topleft', legend = c('Simulated Prevalence', 'Observed Prevalence', '95% CI'), col = c('red', 'blue', 'blue'), pch = c(NA, 16, NA), lty = c(1, NA, 1), bty = 'n')
 
 initial_guess <- c(logit_cMax = log(0.6/0.4), log_cRate = log(0.4))
-# initial_guess <- c(log_cMax = log(1), log_cRate = log(3))
+# read from rds so specify paths
 data1 <- readRDS("/Users/tkoh/Documents/MMED2025/MMED2025_HIV_model_fitting/simPdata_list1.rds")
-for (ii in 1:length(data1)){
-	data <- data1[[ii]]
-	mle_result <- estimate_mle(data, SI4control, initial_guess, true_params)
-	print(exp( mle_result$params['log_cRate']))
-	print(1/(1+exp(-mle_result$params['logit_cMax'])))
-	lse_result <- estimate_lse(observed_data, SI4control, initial_guess, true_params)
-	# gather_crate[ii] <- exp( mle_result$params['log_cRate'])
-	# gather_cmax[ii] <- 1/(1+exp(-mle_result$params['logit_cMax']))
-	print(true_params[c('cMax','cRate')])
+data2 <- readRDS("/Users/tkoh/Documents/MMED2025/MMED2025_HIV_model_fitting/simPdata_list2.rds")
+data3 <- readRDS("/Users/tkoh/Documents/MMED2025/MMED2025_HIV_model_fitting/simPdata_list2.rds")
+data4 <- readRDS("/Users/tkoh/Documents/MMED2025/MMED2025_HIV_model_fitting/simPdata_list2.rds")
+# tibble to store results
+datas <- list(data1, data2, data3, data4)
+results_tbl <- tibble()
+
+# 
+# data <- scenarios[[ii]]
+# 
+# 
+# mle_result <- estimate_mle(data, SI4control, initial_guess, true_params)
+# 
+# 
+# 
+# ml.val <- mle_result$value
+# conf.cutoff <- ml.val + qchisq(.95,2)/2
+# nll <- calculate_nll(true_params, data, SI4control)
+# mle_within_region <- (nll <= conf.cutoff)
+
+# 
+# 
+# mle_cRate <- exp(mle_result$params['log_cRate'])
+# mle_cMax <- 1/(1+exp(-mle_result$params['logit_cMax']))
+# 
+# 
+# mle_matrix <- mle_result$fisherInfMatrix
+# mle_se <- mle_result$se
+# mle_cMax_lci <- invlogit(1/(1+exp(-mle_result$params['logit_cMax']))-qnorm(0.975)*mle_matrix[1,1])
+# mle_cMax_uci <- invlogit(1/(1+exp(-mle_result$params['logit_cMax']))+qnorm(0.975)*mle_matrix[1,1])
+# mle_cRate_lci <- exp(mle_result$params['log_cRate']-qnorm(0.975)*mle_matrix[1,1])
+# mle_cRate_uci <- exp(mle_result$params['log_cRate']*mle_matrix[2,2])
+# 
+# 
+# lse_result <- estimate_lse(observed_data, SI4control, initial_guess, true_params)
+# lse_cRate <- exp(lse_result$params['log_cRate'])
+# lse_cMax <- 1/(1+exp(-lse_result$params['logit_cMax']))
+# lse_se <- lse_result$se
+# 
+# results_tbl <- bind_rows(
+# 	results_tbl,
+# 	tibble(
+# 		scenario = jj,
+# 		dataset = ii,
+# 		mle_cRate = mle_cRate,
+# 		mle_cMax = mle_cMax,
+# 		mle_matrix = mle_matrix,
+# 		mle_within_region <- length(mle_within_region), # 0 = true
+# 		mle_cMax_lci <- mle_cMax_lci,
+# 		mle_cMax_uci <- mle_cMax_uci,
+# 		mle_cRate_lci <- mle_cRate_lci,
+# 		mle_cRate_uci <- mle_cRate_uci,
+# 		
+# 		lse_cRate = lse_cRate,
+# 		lse_cMax = lse_cMax,
+# 		lse_se = lse_se,
+# 		true_cRate = true_params$cRate,
+# 		true_cMax = true_params$cMax
+# 	)
+
+
+
+
+
+
+
+
+for (jj in 1:length(datas)){
+	scenarios <- datas[[jj]]
+	for (ii in 1:50){
+
+			data <- scenarios[[ii]]
+
+
+			mle_result <- estimate_mle(data, SI4control, initial_guess, true_params)
+
+
+
+			ml.val <- mle_result$value
+			conf.cutoff <- ml.val + qchisq(.95,2)/2
+			nll <- calculate_nll(true_params, data, SI4control)
+			mle_within_region <- (nll <= conf.cutoff)
+
+
+
+			mle_cRate <- exp(mle_result$params['log_cRate'])
+			mle_cMax <- 1/(1+exp(-mle_result$params['logit_cMax']))
+
+
+			mle_matrix <- mle_result$fisherInfMatrix
+			mle_se <- mle_result$se
+			mle_cMax_lci <- invlogit(1/(1+exp(-mle_result$params['logit_cMax']))-qnorm(0.975)*mle_matrix[1,1])
+			mle_cMax_uci <- invlogit(1/(1+exp(-mle_result$params['logit_cMax']))+qnorm(0.975)*mle_matrix[1,1])
+			mle_cRate_lci <- exp(mle_result$params['log_cRate']-qnorm(0.975)*mle_matrix[1,1])
+			mle_cRate_uci <- exp(mle_result$params['log_cRate']*mle_matrix[2,2])
+
+
+			lse_result <- estimate_lse(observed_data, SI4control, initial_guess, true_params)
+			lse_cRate <- exp(lse_result$params['log_cRate'])
+			lse_cMax <- 1/(1+exp(-lse_result$params['logit_cMax']))
+			lse_se <- lse_result$se
+
+			results_tbl <- bind_rows(
+				results_tbl,
+				tibble(
+					scenario = jj,
+					dataset = ii,
+					mle_cRate = mle_cRate,
+					mle_cMax = mle_cMax,
+					mle_matrix = mle_matrix,
+					mle_within_region <- length(mle_within_region), # 0 = true
+					mle_cMax_lci <- mle_cMax_lci,
+					mle_cMax_uci <- mle_cMax_uci,
+					mle_cRate_lci <- mle_cRate_lci,
+					mle_cRate_uci <- mle_cRate_uci,
+
+					lse_cRate = lse_cRate,
+					lse_cMax = lse_cMax,
+					lse_se = lse_se,
+					true_cRate = true_params$cRate,
+					true_cMax = true_params$cMax
+				)
+			)
+	}
 }
+saveRDS(results_tbl, "/Users/tkoh/Documents/MMED2025/MMED2025_HIV_model_fitting/results.rds")

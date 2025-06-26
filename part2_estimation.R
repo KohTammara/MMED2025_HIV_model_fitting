@@ -242,27 +242,27 @@ process_one <- function(observed_data, scenario_id, dataset_id, true_cMax, true_
 	# in_region_mle <- is_in_conf_region(mle_cMax, mle_cRate, fixed_params, observed_data, SI4control_time)
 	# 
 	# tibble(
-	# 	scenario = scenario_id,
-	# 	dataset = dataset_id,
-	# 	mle_cMax = mle_cMax,
-	# 	mle_cRate = mle_cRate,
-	# 	mle_cMax_lci = mle_ci_cMax[1],
-	# 	mle_cMax_uci = mle_ci_cMax[2],
-	# 	mle_cRate_lci = mle_ci_cRate[1],
-	# 	mle_cRate_uci = mle_ci_cRate[2],
-	# 	lse_cMax = lse_cMax,
-	# 	lse_cRate = lse_cRate,
-	# 	lse_cMax_lci = lse_ci_cMax[1],
-	# 	lse_cMax_uci = lse_ci_cMax[2],
-	# 	lse_cRate_lci = lse_ci_cRate[1],
-	# 	lse_cRate_uci = lse_ci_cRate[2],
-	# 	true_cMax = true_cMax,
-	# 	true_cRate = true_cRate,
-	# 	mle_se_cMax = mle_se_cMax,
-	# 	mle_se_cRate = mle_se_cRate,
-	# 	lse_se_cMax = lse_se_cMax,
-	# 	lse_se_cRate = lse_se_cRate,
-	# 	mle_in_region = in_region_mle
+		# scenario = scenario_id,
+		# dataset = dataset_id,
+		# mle_cMax = mle_cMax,
+		# mle_cRate = mle_cRate,
+		# mle_cMax_lci = mle_ci_cMax[1],
+		# mle_cMax_uci = mle_ci_cMax[2],
+		# mle_cRate_lci = mle_ci_cRate[1],
+		# mle_cRate_uci = mle_ci_cRate[2],
+		# lse_cMax = lse_cMax,
+		# lse_cRate = lse_cRate,
+		# lse_cMax_lci = lse_ci_cMax[1],
+		# lse_cMax_uci = lse_ci_cMax[2],
+		# lse_cRate_lci = lse_ci_cRate[1],
+		# lse_cRate_uci = lse_ci_cRate[2],
+		# true_cMax = true_cMax,
+		# true_cRate = true_cRate,
+		# mle_se_cMax = mle_se_cMax,
+		# mle_se_cRate = mle_se_cRate,
+		# lse_se_cMax = lse_se_cMax,
+		# lse_se_cRate = lse_se_cRate,
+		# mle_in_region = in_region_mle
 	# )
 	
 	return (c(invlogit(mle_result$params["logit_cMax"]),exp(mle_result$params["log_cRate"])))

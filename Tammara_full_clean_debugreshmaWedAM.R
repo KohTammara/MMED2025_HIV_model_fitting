@@ -92,7 +92,7 @@ SI4control <- function(time, state, parameters) {
 		I <- I1 + I2 + I3 + I4
 		lambda <- Beta * exp(-alpha * I / N)
 		g <- 4 * progRt
-		control_effect <- min(1, 1 - cMax / (1 + exp(-cRate * (time - cHalf))))
+		control_effect <- min(1, cMax+(1-cMax)*exp(-(time-cStart)*cRate))
 		
 		dS <- birthRt * N - control_effect * lambda * S * I / N - deathRt * S
 		progression <- g * c(I1, I2, I3, I4)
@@ -111,7 +111,7 @@ create_disease_parameters <- function(Beta = 0.6 ## transmission coefficient whe
 																												, deathRt = 1/60 ## 60 year natural life expectancy
 																												, cMax = 0.7 # 1 - THIS is intervention effect
 																												, cRate = 0.5
-																												, cHalf = 1998
+																												, cStart = 1998
 ){
 	return(as.list(environment())) ## ARG
 }
@@ -249,8 +249,9 @@ legend('topleft', legend = c('Simulated Prevalence', 'Observed Prevalence', '95%
 
 initial_guess <- c(logit_cMax = log(0.6/0.4), log_cRate = log(0.4))
 # initial_guess <- c(log_cMax = log(1), log_cRate = log(3))
-
-mle_result <- estimate_mle(observed_data, SI4control, initial_guess, true_params)
+data1 <- readRDS("/Users/tkoh/Documents/MMED2025/MMED2025_HIV_model_fitting/simPdata_list1.rds")
+data1 <- data1[[1]]
+mle_result <- estimate_mle(data1, SI4control, initial_guess, true_params)
 exp( mle_result$params['log_cRate'])
 1/(1+exp(-mle_result$params['logit_cMax']))
 # gather_crate[ii] <- exp( mle_result$params['log_cRate'])
@@ -262,7 +263,7 @@ true_params[c('cMax','cRate')]
 # lse_result <- estimate_lse(observed_data, SI4control, initial_guess, true_params)
 
 cat("MLE Estimates:", exp(unname(mle_result$params)), "\n")
-cat("LSE Estimates:", exp(unname(lse_result$params)), "\n")
+# cat("LSE Estimates:", exp(unname(lse_result$params)), "\n")
 true_params[c('cMax','cRate')]
 
 
